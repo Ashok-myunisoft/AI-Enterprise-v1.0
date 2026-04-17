@@ -1,0 +1,27 @@
+# Environment variables - never commit credentials
+.env
+.env.*
+
+# Python virtual environment
+venv/
+.venv/
+env/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# IDE
+.vscode/
+.idea/
+
+# Claude Code project settings (may contain API keys)
+settings.json
+settings.local.json
