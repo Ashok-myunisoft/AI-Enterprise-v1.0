@@ -1,5 +1,8 @@
 import importlib
+import os
 from core.registry import SERVICE_REGISTRY
+
+_DEFAULT_TEMPERATURE = float(os.getenv("DEFAULT_TEMPERATURE", "0.7"))
 
 
 def dispatch(initiative_code, capability_code, input_data, file=None, prompt_template=None, model_config=None):
@@ -16,7 +19,7 @@ def dispatch(initiative_code, capability_code, input_data, file=None, prompt_tem
     if model_config is not None:
         model_dict = {
             "model": model_config.modelcode,
-            "temperature": 0.7,
+            "temperature": _DEFAULT_TEMPERATURE,
         }
 
     return module.handle_request(

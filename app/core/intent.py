@@ -13,6 +13,7 @@ def resolve_intent(db: Session, tenant_id: int, input_text: str = None, file=Non
     """
     Rule-based intent resolution by initiative:
       - bot_hint=chatbot            → CHATBOT_AGENT   (explicit chatbot routing)
+      - bot_hint=applicant          → APPLICANT_AGENT (explicit applicant routing)
       - session_id + text           → REPORT_ANALYZER (QUESTION_ANSWER chat)
       - session_id + file           → REPORT_ANALYZER (upload-file to existing session)
       - File (no session/hint)      → EXTRACTOR_AGENT (document extraction)
@@ -25,6 +26,8 @@ def resolve_intent(db: Session, tenant_id: int, input_text: str = None, file=Non
         rule = "chatinterface"
     elif bot_hint == "chatbot":
         rule = "chatbot"
+    elif bot_hint == "applicant":
+        rule = "applicant"
     elif session_id:
         rule = "report_session"
     elif file is not None:
@@ -42,6 +45,7 @@ def resolve_intent(db: Session, tenant_id: int, input_text: str = None, file=Non
     initiative_keyword = {
         "chatbot":        "chatbot",
         "chatinterface":  "chatinterface",
+        "applicant":      "applicant",
         "file":           "extract",
         "json":           "report",
         "text":           "creator",
@@ -68,7 +72,8 @@ def resolve_intent(db: Session, tenant_id: int, input_text: str = None, file=Non
 
     # Resolve capability
     capability = db.query(MAIcapability).filter(
-        MAIcapability.AIcapabilitycode == target_template.capabilitycode
+        MAIcapability.AIcapabilitycode == target_template.capabilitycode,
+        MAIcapability.TENANTID == tenant_id
     ).first()
 
     if not capability:

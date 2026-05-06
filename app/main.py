@@ -54,6 +54,9 @@ async def rate_limit_middleware(request: Request, call_next):
     _rate_limit_requests[client_ip] = [
         t for t in _rate_limit_requests[client_ip] if now - t < window
     ]
+    if not _rate_limit_requests[client_ip]:
+        _rate_limit_requests.pop(client_ip, None)
+        _rate_limit_requests[client_ip] = []
     if len(_rate_limit_requests[client_ip]) >= RATE_LIMIT:
         return JSONResponse({"detail": "Rate limit exceeded"}, status_code=429)
     _rate_limit_requests[client_ip].append(now)

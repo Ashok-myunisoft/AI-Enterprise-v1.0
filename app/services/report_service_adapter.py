@@ -48,14 +48,17 @@ def call_report_analyzer(capability_code: str, input_data: dict, file=None, prom
     else:
         url = f"{BASE_URL}/upload-json"
 
-        if "message" in input_data and isinstance(input_data["message"], list):
-            input_data["message"] = json.dumps(
-                input_data["message"],
+        _internal_keys = {"_tenant_id", "_user_id", "_login", "session_id", "input_type"}
+        safe_input = {k: v for k, v in input_data.items() if k not in _internal_keys}
+
+        if "message" in safe_input and isinstance(safe_input["message"], list):
+            safe_input["message"] = json.dumps(
+                safe_input["message"],
                 separators=(",", ":")
             )
 
         payload = {
-            **input_data,
+            **safe_input,
             **config_payload
         }
 

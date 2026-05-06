@@ -4,4 +4,5 @@ SERVICE_REGISTRY = {
     "CREATOR_AGENT": "services.creator_service_adapter",
     "CHATBOT_AGENT": "services.chatbot_service_adapter",
     "CHATINTERFACE_AGENT": "services.chatinterface_service_adapter",
+    "APPLICANT_AGENT": "services.applicant_service_adapter",
 }

@@ -48,7 +48,7 @@ router = APIRouter(prefix="/api/ai", tags=["AI"])
                         "properties": {
                             "input":      {"type": "string", "description": "Text input"},
                             "session_id": {"type": "string", "description": "Session ID"},
-                            "bot_hint":   {"type": "string", "description": "Route hint: 'chatbot'"},
+                            "bot_hint":   {"type": "string", "description": "Route hint: 'chatbot', 'chatinterface', or 'applicant'"},
                             "login":      {"type": "string", "description": "GoodBooks Login JSON (required for chatbot)"},
                             "file":       {"type": "string", "format": "binary", "description": "File upload"},
                         },
@@ -201,9 +201,13 @@ async def execute_ai(
         outcomestatus=0
     )
 
-    db.add(execution)
-    db.commit()
-    db.refresh(execution)
+    try:
+        db.add(execution)
+        db.commit()
+        db.refresh(execution)
+    except Exception:
+        db.rollback()
+        raise HTTPException(status_code=500, detail="Failed to create execution record")
 
     try:
         # 🔥 Call Service
@@ -254,3 +258,4 @@ def get_execution(
         raise HTTPException(status_code=404, detail="Execution not found")
 
     return execution
+
