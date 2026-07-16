@@ -13,7 +13,7 @@ DEFAULT_FILE_ENDPOINT = os.getenv("APPLICANT_FILE_ENDPOINT", "/gbaiapi/applicant
 def _build_url(endpoint: str) -> str:
     if not BASE_URL:
         raise Exception("APPLICANT_URL not set")
-    return f" {BASE_URL.rstrip('/')}/{endpoint.lstrip('/')} "
+    return f"{BASE_URL.rstrip('/')}/{endpoint.lstrip('/')}"
 
 
 def call_applicant(capability_code: str, input_data: dict, file=None, prompt_template=None, model_config=None):

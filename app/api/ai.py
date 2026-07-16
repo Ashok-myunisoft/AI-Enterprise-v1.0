@@ -30,6 +30,7 @@ from models.bot import MAIbot
 from models.execution import TAIexecution
 from services.prompt_resolver import get_prompt
 from services.model_resolver import get_model
+from services.config_resolver import get_active_config
 from core.dispatcher import dispatch
 
 router = APIRouter(prefix="/api/ai", tags=["AI"])
@@ -48,7 +49,7 @@ router = APIRouter(prefix="/api/ai", tags=["AI"])
                         "properties": {
                             "input":      {"type": "string", "description": "Text input"},
                             "session_id": {"type": "string", "description": "Session ID"},
-                            "bot_hint":   {"type": "string", "description": "Route hint: 'chatbot', 'chatinterface', or 'applicant'"},
+                            "bot_hint":   {"type": "string", "description": "Route hint: 'chatbot', 'chatinterface', 'applicant', 'generate_profile', 'document_identifier', or 'parse_validate'"},
                             "login":      {"type": "string", "description": "GoodBooks Login JSON (required for chatbot)"},
                             "file":       {"type": "string", "format": "binary", "description": "File upload"},
                         },
@@ -71,6 +72,11 @@ async def execute_ai(
     session_id = form.get("session_id") or None
     bot_hint = form.get("bot_hint") or None
     login = form.get("login") or None
+    if login:
+        try:
+            login = _json.dumps(_json.loads(login), ensure_ascii=True, separators=(',', ':'))
+        except (ValueError, TypeError):
+            login = login.encode('ascii', errors='ignore').decode('ascii')
     raw_file = form.get("file")
     file = raw_file if isinstance(raw_file, StarletteUploadFile) and raw_file.filename else None
 
@@ -93,6 +99,13 @@ async def execute_ai(
     else:
         if bot_hint == "chatbot":
             input_data = {"message": input}
+        elif bot_hint == "generate_profile":
+            # Accept JSON dict OR plain pipe-separated string
+            try:
+                parsed = _json.loads(input)
+                input_data = parsed if isinstance(parsed, dict) else {"text": input}
+            except (ValueError, TypeError):
+                input_data = {"text": input}
         else:
             try:
                 parsed = _json.loads(input)
@@ -138,27 +151,25 @@ async def execute_ai(
 
     initiativeCode = initiative_lookup.aiinitiativecode
 
-    prompt_template = get_prompt(
-        db,
-        initiativeCode,
-        capabilityCode,
-        tenantId
-    )
-
-    if not prompt_template:
-        raise HTTPException(
-            status_code=404,
-            detail="Prompt template not configured"
-        )
-
-
+    prompt_template = get_prompt(db, initiativeCode, capabilityCode, tenantId)
     model_config = get_model(db, tenantId)
 
+    # Active config version overrides DB prompt/model when present
+    active_config = get_active_config(db, initiativeCode)
+    if active_config:
+        if active_config.prompt:
+            prompt_template = active_config.prompt
+        if active_config.model:
+            model_config = {
+                "model": active_config.model,
+                "temperature": active_config.temperature if active_config.temperature is not None else 0.7,
+            }
+
+    if not prompt_template:
+        raise HTTPException(status_code=404, detail="Prompt template not configured")
+
     if not model_config:
-        raise HTTPException(
-            status_code=404,
-            detail="Model not configured"
-        )
+        raise HTTPException(status_code=404, detail="Model not configured")
 
     # 1️⃣ Validate Initiative
     initiative = db.query(MAIinitiative).filter(

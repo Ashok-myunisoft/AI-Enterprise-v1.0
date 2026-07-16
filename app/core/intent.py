@@ -28,6 +28,12 @@ def resolve_intent(db: Session, tenant_id: int, input_text: str = None, file=Non
         rule = "chatbot"
     elif bot_hint == "applicant":
         rule = "applicant"
+    elif bot_hint == "generate_profile":
+        rule = "generate_profile"
+    elif bot_hint == "document_identifier":
+        rule = "document_identifier"
+    elif bot_hint == "parse_validate":
+        rule = "parse_validate"
     elif session_id:
         rule = "report_session"
     elif file is not None:
@@ -43,13 +49,29 @@ def resolve_intent(db: Session, tenant_id: int, input_text: str = None, file=Non
 
     # Map rule → initiative keyword
     initiative_keyword = {
-        "chatbot":        "chatbot",
-        "chatinterface":  "chatinterface",
-        "applicant":      "applicant",
-        "file":           "extract",
-        "json":           "report",
-        "text":           "creator",
-        "report_session": "report",
+        "chatbot":          "chatbot",
+        "chatinterface":    "chatinterface",
+        "applicant":        "applicant",
+        "generate_profile": "generate_profile",
+        "document_identifier": "document_identifier",
+        "parse_validate":   "parse_validate",
+        "file":             "extract",
+        "json":             "report",
+        "text":             "creator",
+        "report_session":   "report",
+    }[rule]
+
+    preferred_capability = {
+        "chatbot":             "CHATBOT",
+        "chatinterface":       "CHATINTERFACE",
+        "applicant":           "APPLICANT_PROCESS",
+        "generate_profile":    "GENERATE_PROFILE",
+        "document_identifier": "IDENTIFY_DOCUMENT",
+        "parse_validate":      "PARSE_VALIDATE_DOCUMENT",
+        "file":                "EXTRACT_DOCUMENT",
+        "json":                "ANALYZE_REPORT",
+        "text":                "GENERATE_VOUCHER",
+        "report_session":      "QUESTION_ANSWER",
     }[rule]
 
     # Find the first active prompt template linked to the target initiative
@@ -62,9 +84,18 @@ def resolve_intent(db: Session, tenant_id: int, input_text: str = None, file=Non
 
     target_template = None
     for t in templates:
-        if initiative_keyword in t.initiativecode.lower():
+        if (
+            initiative_keyword in t.initiativecode.lower()
+            and t.capabilitycode == preferred_capability
+        ):
             target_template = t
             break
+
+    if not target_template:
+        for t in templates:
+            if initiative_keyword in t.initiativecode.lower():
+                target_template = t
+                break
 
     if not target_template:
         logger.debug("[intent] FAIL: no template matched keyword=%r", initiative_keyword)

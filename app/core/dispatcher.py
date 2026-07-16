@@ -14,13 +14,17 @@ def dispatch(initiative_code, capability_code, input_data, file=None, prompt_tem
 
     module = importlib.import_module(module_path)
 
-    # Convert MAImodel ORM object to dict expected by adapters
+    # Convert MAImodel ORM object to dict expected by adapters.
+    # If model_config is already a dict (e.g. from a config version override), use it directly.
     model_dict = None
     if model_config is not None:
-        model_dict = {
-            "model": model_config.modelcode,
-            "temperature": _DEFAULT_TEMPERATURE,
-        }
+        if isinstance(model_config, dict):
+            model_dict = model_config
+        else:
+            model_dict = {
+                "model": model_config.modelcode,
+                "temperature": _DEFAULT_TEMPERATURE,
+            }
 
     return module.handle_request(
         capability_code,

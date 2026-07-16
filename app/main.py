@@ -2,6 +2,7 @@ import os
 import logging
 from collections import defaultdict
 from time import time
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,15 +10,23 @@ from api.health import router as health_router
 from api.ai import router as ai_router
 from routers.config_admin import router as config_router
 from routers import admin
+from core.database import SessionLocal
+from core.auto_seed import run_seeds
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s %(levelname)s %(name)s %(message)s"
 )
 
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    run_seeds(SessionLocal())
+    yield
+
 app = FastAPI(
     title="EnterPrise Ai",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan,
 )
 
 # ── CORS ──────────────────────────────────────────────────────

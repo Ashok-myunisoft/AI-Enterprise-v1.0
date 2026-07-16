@@ -6,25 +6,19 @@ logger = logging.getLogger(__name__)
 BASE_URL = os.getenv("CHATBOT_AGENT_URL")
 
 
-def call_chatbot(capability_code: str, input_data: dict, file=None, prompt_template=None, model_config=None):
+def call_chatbot(_capability_code: str, input_data: dict, _file=None, _prompt_template=None, _model_config=None):
 
     session_id = input_data.get("session_id")
     content = input_data.get("message") or input_data.get("text", "")
     login = input_data.get("_login", "")
     headers = {"Login": login}
 
-    payload = {
-        "message": content,
-        "prompt": prompt_template,
-        "model": model_config.get("model") if model_config else None,
-        "temperature": model_config.get("temperature") if model_config else None
-    }
-
     if session_id:
         url = f"{BASE_URL}/gbaiapi/thread_chat"
-        payload["thread_id"] = session_id
+        payload = {"content": content, "thread_id": session_id}
     else:
         url = f"{BASE_URL}/gbaiapi/chat"
+        payload = {"content": content}
 
     response = requests.post(url, json=payload, headers=headers, timeout=120)
 

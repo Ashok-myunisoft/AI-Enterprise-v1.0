@@ -6,6 +6,8 @@ from core.database import get_db
 from core.auth import get_current_user
 from models.prompt_template import MAIprompttemplate
 from models.model import MAImodel
+from services.prompt_resolver import invalidate_prompt
+from services.model_resolver import invalidate_model
 
 logger = logging.getLogger(__name__)
 
@@ -46,6 +48,7 @@ def update_prompt(
     prompt.version += 1
 
     db.commit()
+    invalidate_prompt(body.tenantId, body.initiativeCode, body.capabilityCode)
 
     logger.info(
         "Prompt updated: tenant=%s initiative=%s capability=%s user=%s",
@@ -74,6 +77,7 @@ def update_model(
     model.modelname = body.modelname
 
     db.commit()
+    invalidate_model(body.tenantId)
 
     logger.info(
         "Model updated: tenant=%s model=%s user=%s",
