@@ -64,7 +64,7 @@ A **FastAPI-based Enterprise AI orchestration platform** that manages AI initiat
 
 ```
 app/
-├── main.py                          # FastAPI app entry point (port 8009)
+├── main.py                          # FastAPI app entry point (port 8006)
 ├── api/
 │   ├── __init__.py
 │   ├── ai.py                        # AI execution endpoints (/api/ai/*)
@@ -257,7 +257,7 @@ REPORT_ANALYZER_URL=http://localhost:8000
 
 ```bash
 cd app
-uvicorn main:app --host 0.0.0.0 --port 8009 --reload
+uvicorn main:app --host 0.0.0.0 --port 8006 --reload
 ```
 
 Or directly:
@@ -267,7 +267,7 @@ cd app
 python main.py
 ```
 
-The API will be available at `http://localhost:8009`. Interactive API docs are at `http://localhost:8009/docs`.
+The API will be available at `http://localhost:8006. Interactive API docs are at `http://localhost:8006/docs`.
 
 ---
 
