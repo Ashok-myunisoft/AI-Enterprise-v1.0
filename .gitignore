@@ -12,6 +12,7 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.py[cod]
 
 # Distribution / packaging
 dist/
@@ -25,3 +26,13 @@ build/
 # Claude Code project settings (may contain API keys)
 settings.json
 settings.local.json
+
+.pytest_cache/
+.mypy_cache/
+
+.idea/
+.vscode/
+.DS_Store
+
+*.sqlite
+*.db

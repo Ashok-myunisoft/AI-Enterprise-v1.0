@@ -1,0 +1,9 @@
+services:
+  enterprise-ai:
+    build: .
+    container_name: enterprise-ai
+    ports:
+      - "8006:8006"
+    env_file:
+      - .env
+    restart: unless-stopped
